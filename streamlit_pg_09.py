@@ -491,4 +491,5 @@ with tabs[3]:
             st.success("✅ Menu and Inventory synchronized.")
         else:
             st.error("❌ Incorrect Menu Password")
-``
+
+
