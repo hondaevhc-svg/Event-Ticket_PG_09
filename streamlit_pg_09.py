@@ -30,8 +30,7 @@ if "admin_pass" not in st.session_state:
 if "menu_pass" not in st.session_state:
     st.session_state.menu_pass = ""
 if "active_tab" not in st.session_state:
-    # store label of active tab
-    st.session_state.active_tab = "📊 Dashboard"
+    st.session_state.active_tab = "📊 Dashboard"  # tab label
 
 def clear_admin_pass():
     st.session_state.admin_pass = ""
@@ -39,8 +38,8 @@ def clear_admin_pass():
 def clear_menu_pass():
     st.session_state.menu_pass = ""
 
-# helper to rerun but keep current tab
 def rerun_on_tab(tab_label: str):
+    """Helper to rerun while keeping a specific tab active."""
     st.session_state.active_tab = tab_label
     st.rerun()
 
@@ -106,8 +105,7 @@ with st.sidebar:
 
     if st.button("🔄 Refresh Data", use_container_width=True):
         st.cache_data.clear()
-        # keep same tab on manual refresh
-        st.rerun()
+        st.rerun()  # keep same active_tab; we do not change it here
 
     admin_pass_input = st.text_input(
         "Reset Database Password",
@@ -134,7 +132,6 @@ with st.sidebar:
 # -------------------------------------------------
 tab_labels = ["📊 Dashboard", "💰 Sales", "🚶 Visitors", "⚙️ Edit Menu"]
 
-# compute index to open based on session state
 try:
     init_index = tab_labels.index(st.session_state.active_tab)
 except ValueError:
@@ -298,7 +295,7 @@ with tabs[1]:
             st.info("No sales recorded yet.")
 
 # -------------------------------------------------
-# 3. VISITORS
+# 3. VISITORS (updated to use rerun_on_tab)
 # -------------------------------------------------
 with tabs[2]:
     if st.session_state.active_tab != tab_labels[2]:
@@ -380,7 +377,6 @@ with tabs[2]:
                 with st.form("reverse_entry"):
                     tid = st.selectbox("Ticket ID to modify", visited_tickets)
 
-                    # for FAMILY SILVER / FAMILY BRONZE allow seat adjustment instead of full reset
                     editable_cats = {"FAMILY SILVER", "FAMILY BRONZE"}
                     allow_edit = str(rv_cat).strip().upper() in editable_cats
 
