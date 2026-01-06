@@ -25,18 +25,12 @@ st.markdown("""
 # -------------------------------------------------
 # SESSION STATE
 # -------------------------------------------------
-if "admin_pass" not in st.session_state:
-    st.session_state.admin_pass = ""
-if "menu_pass" not in st.session_state:
-    st.session_state.menu_pass = ""
+if "admin_pass_key" not in st.session_state:
+    st.session_state.admin_pass_key = 0
+if "menu_pass_key" not in st.session_state:
+    st.session_state.menu_pass_key = 0
 if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "📊 Dashboard"  # tab label
-
-def clear_admin_pass():
-    st.session_state.admin_pass = ""
-
-def clear_menu_pass():
-    st.session_state.menu_pass = ""
+    st.session_state.active_tab = "📊 Dashboard"
 
 def rerun_on_tab(tab_label: str):
     """Helper to rerun while keeping a specific tab active."""
@@ -105,12 +99,13 @@ with st.sidebar:
 
     if st.button("🔄 Refresh Data", use_container_width=True):
         st.cache_data.clear()
-        st.rerun()  # keep same active_tab; we do not change it here
+        st.rerun()
 
+    # Dynamic key for admin password to allow clearing
     admin_pass_input = st.text_input(
         "Reset Database Password",
         type="password",
-        key="admin_pass",
+        key=f"admin_pass_{st.session_state.admin_pass_key}",
     )
 
     if st.button("🚨 Reset Database", use_container_width=True):
@@ -121,14 +116,14 @@ with st.sidebar:
             tickets["Visitor_Seats"] = 0
             tickets["Timestamp"] = None
             save_tickets_df(tickets)
-            clear_admin_pass()
+            st.session_state.admin_pass_key += 1  # Clear password field
             st.success("Database has been reset.")
             rerun_on_tab("📊 Dashboard")
         else:
             st.error("Incorrect Admin Password")
 
 # -------------------------------------------------
-# TABS (respect active_tab)
+# TABS
 # -------------------------------------------------
 tab_labels = ["📊 Dashboard", "💰 Sales", "🚶 Visitors", "⚙️ Edit Menu"]
 
@@ -210,7 +205,6 @@ with tabs[1]:
             key="sale_action",
         )
 
-        # ---------- Manual Sale ----------
         if sale_tab == "Manual":
             s_type = st.radio("Type", ["Public", "Guest"], horizontal=True, key="sale_type")
             s_cat = st.selectbox(
@@ -242,7 +236,6 @@ with tabs[1]:
             else:
                 st.info("No available tickets in this category.")
 
-        # ---------- Reverse Sale ----------
         elif sale_tab == "Reverse Sale":
             r_type = st.radio("Type", ["Public", "Guest"], horizontal=True, key="rs_type")
             r_cat = st.selectbox(
@@ -295,7 +288,7 @@ with tabs[1]:
             st.info("No sales recorded yet.")
 
 # -------------------------------------------------
-# 3. VISITORS (updated to use rerun_on_tab)
+# 3. VISITORS
 # -------------------------------------------------
 with tabs[2]:
     if st.session_state.active_tab != tab_labels[2]:
@@ -307,7 +300,6 @@ with tabs[2]:
     with v_in:
         v_action = st.radio("Action", ["Entry", "Reverse Entry"], horizontal=True, key="v_action")
 
-        # ---------- Entry ----------
         if v_action == "Entry":
             v_type = st.radio(
                 "Entry Type",
@@ -353,8 +345,7 @@ with tabs[2]:
             else:
                 st.info("No eligible tickets for entry.")
 
-        # ---------- Reverse Entry with optional seat change ----------
-        else:
+        else:  # Reverse Entry
             rv_type = st.radio(
                 "Entry Type",
                 ["Public", "Guest"],
@@ -472,10 +463,11 @@ with tabs[3]:
         except Exception:
             pass
 
+    # Dynamic key for menu password to allow clearing
     menu_pass_input = st.text_input(
         "Enter Menu Update Password",
         type="password",
-        key="menu_pass",
+        key=f"menu_pass_{st.session_state.menu_pass_key}",
     )
 
     if st.button("Update Database Menu"):
@@ -509,7 +501,7 @@ with tabs[3]:
 
             final_tickets_df = pd.DataFrame(new_tickets_list)
             save_both(final_tickets_df, edited_menu)
-            clear_menu_pass()
+            st.session_state.menu_pass_key += 1  # Clear password field
             st.success("Menu and Inventory synchronized.")
             rerun_on_tab("⚙️ Edit Menu")
         else:
